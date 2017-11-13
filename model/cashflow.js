@@ -5,7 +5,7 @@ var CashflowSchema = mongoose.Schema({
     year: {
         type: String,
         required: true,
-        unique: true        
+        // unique: true        
     },
     operating: {
         type: mongoose.Schema.Types.Double,

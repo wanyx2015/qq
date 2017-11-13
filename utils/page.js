@@ -4,49 +4,57 @@ const http = require("http")
 var Company = require('../model/company').Company;
 var mongoose = require('mongoose');
 
-var processIncomeStatement = (html) => {
-    $ = html;
-    console.log();
-    console.log("公司利润表");
-    company = getCompanyName(html);
-    console.log(company.name, company.symbol);
-    $('th').each(function (i, elem) {
+var processIncomeStatement = (url) => {
 
-        key = $(this).text().trim();
-        value = $(this).next().text().trim();
+    getPage(url, (html) => {
 
-        i + 1 == 1 ? console.log(key, value) : void(0);
-        i + 1 == 2 ? console.log(key, value) : void(0);
-        i + 1 == 3 ? console.log(key, value) : void(0);
-        i + 1 == 4 ? console.log(key, value) : void(0);
-        i + 1 == 5 ? console.log(key, value) : void(0);
-        i + 1 == 6 ? console.log(key, value) : void(0);
-        i + 1 == 7 ? console.log(key, value) : void(0);
-        i + 1 == 8 ? console.log(key, value) : void(0);
-        i + 1 == 12 ? console.log(key, value) : void(0);
-        i + 1 == 13 ? console.log(key, value) : void(0);
-        i + 1 == 14 ? console.log(key, value) : void(0);
-        i + 1 == 19 ? console.log(key, value) : void(0);
+        $ = html;
+        console.log();
+        console.log("公司利润表");
+        company = getCompanyName(html);
+        console.log(company.name, company.symbol);
+        $('th').each(function (i, elem) {
+
+            key = $(this).text().trim();
+            value = $(this).next().text().trim();
+
+            i + 1 == 1 ? console.log(key, value) : void(0);
+            i + 1 == 2 ? console.log(key, value) : void(0);
+            i + 1 == 3 ? console.log(key, value) : void(0);
+            i + 1 == 4 ? console.log(key, value) : void(0);
+            i + 1 == 5 ? console.log(key, value) : void(0);
+            i + 1 == 6 ? console.log(key, value) : void(0);
+            i + 1 == 7 ? console.log(key, value) : void(0);
+            i + 1 == 8 ? console.log(key, value) : void(0);
+            i + 1 == 12 ? console.log(key, value) : void(0);
+            i + 1 == 13 ? console.log(key, value) : void(0);
+            i + 1 == 14 ? console.log(key, value) : void(0);
+            i + 1 == 19 ? console.log(key, value) : void(0);
+        });
     });
 }
 
-var processAssetStatement = (html) => {
-    $ = html;
-    console.log();
-    console.log("资产负债表");
-    company = getCompanyName(html);
-    console.log(company.name, company.symbol);
-    $('th').each(function (i, elem) {
+var processAssetStatement = (url) => {
 
-        key = $(this).text().trim();
-        value = $(this).next().text().trim();
+    getPage(url, (html) => {
 
-        i + 1 == 1 ? console.log(key, value) : void(0);
-        i + 1 == 6 ? console.log(key, value) : void(0);
-        i + 1 == 21 ? console.log(key, value) : void(0);
-        i + 1 == 34 ? console.log(key, value) : void(0);
-        i + 1 == 57 ? console.log(key, value) : void(0);
-        i + 1 == 66 ? console.log(key, value) : void(0);
+        $ = html;
+        console.log();
+        console.log("资产负债表");
+        company = getCompanyName(html);
+        console.log(company.name, company.symbol);
+        $('th').each(function (i, elem) {
+
+            key = $(this).text().trim();
+            value = $(this).next().text().trim();
+
+            i + 1 == 1 ? console.log(key, value) : void(0);
+            i + 1 == 6 ? console.log(key, value) : void(0);
+            i + 1 == 21 ? console.log(key, value) : void(0);
+            i + 1 == 34 ? console.log(key, value) : void(0);
+            i + 1 == 57 ? console.log(key, value) : void(0);
+            i + 1 == 66 ? console.log(key, value) : void(0);
+        });
     });
 }
 
@@ -64,7 +72,8 @@ var processCashFlow = (url) => {
 
         var company = new Company({
             name: data.name,
-            symbol: data.symbol
+            symbol: data.symbol,
+            cashflow: []
         });
 
 
@@ -108,39 +117,57 @@ var processCashFlow = (url) => {
             console.log("saved doc", doc);
         }, (err) => {
             if (err.code != 11000) {
-                console.log("ERROR on save()", err.code, err.message);
+                console.log("ERROR on save()", err);
                 return;
             }
 
             // duplicate key error
             // company already existed, insert cashflow into it
             //  if (err.code === 11000) {
-            console.log("company already existed, insert cashflow into it");
-            console.log("going to find comapny:", company.cashflow[0].year);
+            console.log("");
+            console.log(company.name, "already existed, insert cashflow into it");
+            console.log(company.name, "going to check:", company.cashflow[0].year);
 
             // find existing company in db
             Company.findOne({
-                name: data.name
+                name: company.name
             }).then((doc) => {
 
-                // check whether the year is already inserted
-                filtered = doc.cashflow.filter((item) => {
-                    // console.log(item.year, company.cashflow[0].year);
-                    return item.year === company.cashflow[0].year;
-                })
+                // console.log(doc);
+                // console.log(company);
 
-                // console.log('Filtered', filtered);
-                if (filtered && filtered.length > 0) {
-                    console.log(`Cashflow in ${company.cashflow[0].year} already exist.`)
-                    return;
+
+                // if you enable unique in embed field like cashflow.year, the index will affect the whole record
+                if (!doc) {
+                    // company.save().then((doc) => {
+                    //     console.log("after creation", doc);
+                    //     return;
+                    // }, (err) => {
+                    //     console.log(err);
+                    //     return;
+                    // })
+                } else {
+                    // check whether the year is already inserted
+                    filtered = doc.cashflow.filter((item) => {
+                        // console.log(item.year, company.cashflow[0].year);
+                        return item.year === company.cashflow[0].year;
+                    })
+
+                    // console.log('Filtered', filtered);
+                    if (filtered && filtered.length > 0) {
+                        console.log(`${company.name} Cashflow in ${company.cashflow[0].year} already exist.`)
+                        return;
+                    }
+
+                    doc.cashflow.push(cf);
+                    doc.save().then((doc) => {
+                        console.log("after push", doc);
+                    }, (err) => {
+                        console.log(err);
+                    })
+
                 }
 
-                doc.cashflow.push(cf);
-                doc.save().then((doc) => {
-                    console.log("after push", doc);
-                }, (err) => {
-                    console.log(err);
-                })
 
             });
         });
