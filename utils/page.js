@@ -18,18 +18,18 @@ var processIncomeStatement = (url) => {
             key = $(this).text().trim();
             value = $(this).next().text().trim();
 
-            i + 1 == 1 ? console.log(key, value) : void(0);
-            i + 1 == 2 ? console.log(key, value) : void(0);
-            i + 1 == 3 ? console.log(key, value) : void(0);
-            i + 1 == 4 ? console.log(key, value) : void(0);
-            i + 1 == 5 ? console.log(key, value) : void(0);
-            i + 1 == 6 ? console.log(key, value) : void(0);
-            i + 1 == 7 ? console.log(key, value) : void(0);
-            i + 1 == 8 ? console.log(key, value) : void(0);
-            i + 1 == 12 ? console.log(key, value) : void(0);
-            i + 1 == 13 ? console.log(key, value) : void(0);
-            i + 1 == 14 ? console.log(key, value) : void(0);
-            i + 1 == 19 ? console.log(key, value) : void(0);
+            i + 1 == 1 ? console.log(key, value) : void(0); // Year
+            i + 1 == 2 ? console.log(key, value) : void(0); // Total operating income
+            i + 1 == 3 ? console.log(key, value) : void(0); // Total operating cost
+            i + 1 == 4 ? console.log(key, value) : void(0); // Sales taxes and surcharges
+            i + 1 == 5 ? console.log(key, value) : void(0); // Sales expenses
+            i + 1 == 6 ? console.log(key, value) : void(0); // GA expenses
+            i + 1 == 7 ? console.log(key, value) : void(0); // Financial expenses
+            i + 1 == 8 ? console.log(key, value) : void(0); // Impairment losses            
+            i + 1 == 12 ? console.log(key, value) : void(0); // Operating profit
+            i + 1 == 13 ? console.log(key, value) : void(0); // Non-operating income
+            i + 1 == 14 ? console.log(key, value) : void(0); // Operating expenses
+            i + 1 == 19 ? console.log(key, value) : void(0); // Net Income Attributable to Shareholders
         });
     });
 }
@@ -41,25 +41,100 @@ var processAssetStatement = (url) => {
         $ = html;
         console.log();
         console.log("资产负债表");
-        company = getCompanyName(html);
-        console.log(company.name, company.symbol);
+        data = getCompanyName(html);
+        console.log(data.name, data.symbol);
+
+        var company = new Company({
+            name: data.name,
+            symbol: data.symbol,
+            balance: []
+        });
+
+        var bl = {};
+
         $('th').each(function (i, elem) {
 
             key = $(this).text().trim();
             value = $(this).next().text().trim();
 
-            i + 1 == 1 ? console.log(key, value) : void(0);
-            i + 1 == 6 ? console.log(key, value) : void(0);
-            i + 1 == 21 ? console.log(key, value) : void(0);
-            i + 1 == 34 ? console.log(key, value) : void(0);
-            i + 1 == 57 ? console.log(key, value) : void(0);
-            i + 1 == 66 ? console.log(key, value) : void(0);
+            value = value.replace("万元", "");
+            // year
+            if (i + 1 == 1) {
+                bl.year = value;
+            }
+            // account receivable
+            if (i + 1 == 6) {
+                bl.ar = value;
+            }
+            // fixed asset
+            if (i + 1 == 21) {
+                bl.fixedasset = value;
+            }
+            // total asset
+            if (i + 1 == 34) {
+                bl.totalasset = value;
+            }
+            // total liability
+            if (i + 1 == 57) {
+                bl.totalliability = value;
+            }
+            // shareholder value
+            if (i + 1 == 66) {
+                bl.totalownerequity = value;
+            }
+
+            i + 1 == 1 ? console.log(key, value) : void(0); // year
+            i + 1 == 6 ? console.log(key, value) : void(0); // account receivable
+            i + 1 == 21 ? console.log(key, value) : void(0); // fixed asset
+            i + 1 == 34 ? console.log(key, value) : void(0); // total asset
+            i + 1 == 57 ? console.log(key, value) : void(0); // total liability
+            i + 1 == 66 ? console.log(key, value) : void(0); // shareholder value
         });
+
+        company.balance.push(bl);
+        var promise = company.save();
+
+        promise.then((doc) => {
+            console.log("saved doc", doc);
+        }, (err) => {
+            if (err.code != 11000) {
+                console.log("ERROR on save()", err);
+                return;
+            }
+
+            // duplicate key error
+            // company already existed, insert cashflow into it
+            //  if (err.code === 11000) {
+            console.log("");
+            console.log(company.name, "already existed, insert balance into it");
+            console.log(company.name, "going to check:", company.balance[0].year);
+
+            // find existing company in db
+            Company.findOne({
+                name: company.name
+            }).then((doc) => {
+                // check whether the year is already inserted
+                filtered = doc.balance.filter((item) => {
+                    return item.year === company.balance[0].year;
+                })
+
+                if (filtered && filtered.length > 0) {
+                    console.log(`${doc.name} Cashflow in ${company.balance[0].year} already exist.`)
+                    return;
+                }
+
+                doc.balance.push(bl);
+                doc.save().then((doc) => {
+                    console.log("after push", doc);
+                }, (err) => {
+                    console.log(err);
+                })
+            }); // end of inserting 
+        }); // end of saving document
     });
 }
 
 var processCashFlow = (url) => {
-
 
     getPage(url, (html) => {
         $ = html;
@@ -69,13 +144,11 @@ var processCashFlow = (url) => {
         data = getCompanyName(html);
         console.log(data.name, data.symbol);
 
-
         var company = new Company({
             name: data.name,
             symbol: data.symbol,
             cashflow: []
         });
-
 
         var cf = {};
         $('th').each(function (i, elem) {
@@ -106,8 +179,6 @@ var processCashFlow = (url) => {
             i + 1 == 35 ? console.log(key, value) : void(0); // fundrasing
         });
 
-        // console.log(cf)
-
         company.cashflow.push(cf);
 
         console.log(company)
@@ -133,41 +204,35 @@ var processCashFlow = (url) => {
                 name: company.name
             }).then((doc) => {
 
-                // console.log(doc);
-                // console.log(company);
-
-
                 // if you enable unique in embed field like cashflow.year, the index will affect the whole record
                 if (!doc) {
-                    // company.save().then((doc) => {
-                    //     console.log("after creation", doc);
-                    //     return;
-                    // }, (err) => {
-                    //     console.log(err);
-                    //     return;
-                    // })
-                } else {
-                    // check whether the year is already inserted
-                    filtered = doc.cashflow.filter((item) => {
-                        // console.log(item.year, company.cashflow[0].year);
-                        return item.year === company.cashflow[0].year;
-                    })
-
-                    // console.log('Filtered', filtered);
-                    if (filtered && filtered.length > 0) {
-                        console.log(`${company.name} Cashflow in ${company.cashflow[0].year} already exist.`)
+                    // this code wont execute
+                    company.save().then((doc) => {
+                        console.log("after creation", doc);
                         return;
-                    }
-
-                    doc.cashflow.push(cf);
-                    doc.save().then((doc) => {
-                        console.log("after push", doc);
                     }, (err) => {
                         console.log(err);
+                        return;
                     })
-
+                    return;
                 }
 
+                // check whether the year is already inserted
+                filtered = doc.cashflow.filter((item) => {
+                    return item.year === company.cashflow[0].year;
+                })
+
+                if (filtered && filtered.length > 0) {
+                    console.log(`${doc.name} Cashflow in ${company.cashflow[0].year} already exist.`)
+                    return;
+                }
+
+                doc.cashflow.push(cf);
+                doc.save().then((doc) => {
+                    console.log("after push", doc);
+                }, (err) => {
+                    console.log(err);
+                })
 
             });
         });
@@ -213,7 +278,6 @@ var getPage = function (url, callback) {
 
 
 module.exports = {
-    // getPage,
     getCompanyName,
     processAssetStatement,
     processIncomeStatement,

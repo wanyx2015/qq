@@ -1,21 +1,24 @@
 var mongoose = require('mongoose');
 // const CashFlow = require('./cashflow').Cashflow;
 const CashflowSchema = require('./cashflow').CashflowSchema;
+const BalanceSchema = require('./balance').BalanceSchema;
 
 var CompanySchema = mongoose.Schema({
     name: {
         type: String,
         required: true,
         minLength: 1,
-        unique: true        
+        unique: true
     },
     symbol: {
         type: String,
         required: true,
         minLength: 1,
-        unique: true        
+        unique: true
     },
 
+    balance: [BalanceSchema],
+    
     cashflow: [CashflowSchema],
 
     updatedAt: {
