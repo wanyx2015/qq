@@ -41,11 +41,6 @@ console.log("Num of symbols: " + symbols.length);
 console.log("Num of jobs: " + jobList.length);
 console.log(jobList);
 
-while (jobList.length > 0) {
-    // setTimeout(processSymbols(), 3000);
-    processSymbols();
-}
-
 function processSymbols() {
     job = jobList.shift();
     var symbol = job.symbol;
@@ -63,4 +58,22 @@ function processSymbols() {
     page.processIncomeStatement(url_income);
     page.processAssetStatement(url_balance);
     page.processCashFlow(url_cashflow);
+    
+    if (jobList.length > 0) {
+        setTimeout(processSymbols, 3000);
+    }
 }
+
+processSymbols();
+
+
+// let counter = 0;
+
+// function foo() {
+//     console.log(`foo ${counter}`);
+//     counter++;
+//     if (counter < 3) {
+//         setTimeout(foo, 1000);
+//     }
+// }
+// foo();
