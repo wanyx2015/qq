@@ -11,12 +11,72 @@ var processIncomeStatement = (url) => {
         $ = html;
         console.log();
         console.log("公司利润表");
-        company = getCompanyName(html);
-        console.log(company.name, company.symbol);
+
+        data = getCompanyName(html);
+        console.log(data.name, data.symbol);
+
+        var company = new Company({
+            name: data.name,
+            symbol: data.symbol,
+            income: []
+        });
+
+        var bl = {};
+
         $('th').each(function (i, elem) {
 
             key = $(this).text().trim();
             value = $(this).next().text().trim();
+            value = value.replace("万元", "");
+
+            // year
+            if (i + 1 == 1) {
+                bl.year = value;
+            }
+            // Total operating income
+            if (i + 1 == 2) {
+                bl.totaloperatingincome = value;
+            }
+            // Total operating cost
+            if (i + 1 == 3) {
+                bl.totaloperatingcost = value;
+            }
+            // Sales taxes and surcharges
+            if (i + 1 == 4) {
+                bl.salestaxes = value;
+            }
+            // Sales expenses
+            if (i + 1 == 5) {
+                bl.salesexpenses = value;
+            }
+            // GA expenses
+            if (i + 1 == 6) {
+                bl.gaexpenses = value;
+            }
+            // Financial expenses
+            if (i + 1 == 7) {
+                bl.financialexpenses = value;
+            }
+            // Impairment losses, Asset devaluation
+            if (i + 1 == 8) {
+                bl.assetdevaluation = value;
+            }
+            // Operating profit
+            if (i + 1 == 12) {
+                bl.operatingprofit = value;
+            }
+            // Non-operating income
+            if (i + 1 == 13) {
+                bl.nonoperatingincome = value;
+            }
+            // Operating expenses
+            if (i + 1 == 14) {
+                bl.operatingexpenses = value;
+            }
+            // Net Income Attributable to Shareholders
+            if (i + 1 == 19) {
+                bl.netincome = value;
+            }
 
             i + 1 == 1 ? console.log(key, value) : void(0); // Year
             i + 1 == 2 ? console.log(key, value) : void(0); // Total operating income
@@ -31,6 +91,49 @@ var processIncomeStatement = (url) => {
             i + 1 == 14 ? console.log(key, value) : void(0); // Operating expenses
             i + 1 == 19 ? console.log(key, value) : void(0); // Net Income Attributable to Shareholders
         });
+
+        company.income.push(bl);
+        var promise = company.save();
+
+        promise.then((doc) => {
+            console.log("saved doc", doc);
+        }, (err) => {
+            if (err.code != 11000) {
+                console.log("ERROR on save()", err);
+                return;
+            }
+
+            // duplicate key error
+            // company already existed, insert cashflow into it
+            //  if (err.code === 11000) {
+            console.log("");
+            console.log(company.name, "already existed, insert income into it");
+            console.log(company.name, "going to check:", company.income[0].year);
+
+            // find existing company in db
+            Company.findOne({
+                name: company.name
+            }).then((doc) => {
+                // check whether the year is already inserted
+                filtered = doc.income.filter((item) => {
+                    return item.year === company.income[0].year;
+                })
+
+                if (filtered && filtered.length > 0) {
+                    console.log(`${doc.name} Income statement in ${company.income[0].year} already exist.`)
+                    return;
+                }
+
+                doc.income.push(bl);
+                doc.save().then((doc) => {
+                    console.log("after push", doc);
+                }, (err) => {
+                    console.log(err);
+                })
+            }); // end of inserting 
+        }); // end of saving document
+
+
     });
 }
 

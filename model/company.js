@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 // const CashFlow = require('./cashflow').Cashflow;
 const CashflowSchema = require('./cashflow').CashflowSchema;
 const BalanceSchema = require('./balance').BalanceSchema;
+const IncomeSchema = require('./income').IncomeSchema;
 
 var CompanySchema = mongoose.Schema({
     name: {
@@ -18,8 +19,10 @@ var CompanySchema = mongoose.Schema({
     },
 
     balance: [BalanceSchema],
-    
+
     cashflow: [CashflowSchema],
+
+    income: [IncomeSchema],
 
     updatedAt: {
         type: Number,
@@ -32,31 +35,6 @@ var CompanySchema = mongoose.Schema({
 });
 
 var Company = mongoose.model('Company', CompanySchema);
-// var CashFlow = {
-//     year: String,
-//     operating: Number,
-//     investment: Number,
-//     fundrasing: Number,
-// }
-
-// var CashFlow = {
-//     year: {
-//         type: String,
-//         required: true
-//     },
-//     operating: {
-//         type: Number,
-//         required: true
-//     },
-//     investment: {
-//         type: Number,
-//         required: true
-//     },
-//     fundrasing: {
-//         type: Number,
-//         required: true
-//     }
-// }
 
 module.exports = {
     Company
