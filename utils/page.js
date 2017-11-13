@@ -50,51 +50,110 @@ var processAssetStatement = (html) => {
     });
 }
 
-var processCashFlow = (html) => {
-    $ = html;
-    console.log();
-    console.log("现金流量表");
-
-    data = getCompanyName(html);
-    console.log(data.name, data.symbol);
+var processCashFlow = (url) => {
 
 
-    var company = new Company({
-        name: data.name,
-        symbol: data.symbol
-    });
+    getPage(url, (html) => {
+        $ = html;
+        console.log();
+        console.log("现金流量表");
 
-    var promise = company.save();
+        data = getCompanyName(html);
+        console.log(data.name, data.symbol);
 
-    promise.then((doc) => {
-        console.log("save", doc);
-    }, (err) => {
-        console.log("ERROR on save()", err);
-    });
 
-    // Company.find({}, function (err, data) {
-    //     if (err) {
-    //         return console.log(err);
-    //     };
-    //     console.log("find() callback", data);
-    // })
+        var company = new Company({
+            name: data.name,
+            symbol: data.symbol
+        });
 
-    Company.find({
-        name: data.name
-    }).then((doc) => {
-        console.log("find() promise", doc);
+
+        var cf = {};
+        $('th').each(function (i, elem) {
+
+            key = $(this).text().trim();
+            value = $(this).next().text().trim();
+            value = value.replace("万元", "");
+
+            if (i + 1 == 1) {
+                cf.year = value;
+                // console.log(cf);
+            }
+            if (i + 1 == 12) {
+                cf.operating = value;
+                // console.log(cf);
+            }
+            if (i + 1 == 25) {
+                cf.investment = value;
+                // console.log(cf);
+            }
+            if (i + 1 == 35) {
+                cf.fundrasing = value;
+                // console.log(cf);
+            }
+            i + 1 == 1 ? console.log(key, value) : void(0); //year
+            i + 1 == 12 ? console.log(key, value) : void(0); // operating
+            i + 1 == 25 ? console.log(key, value) : void(0); // investment
+            i + 1 == 35 ? console.log(key, value) : void(0); // fundrasing
+        });
+
+        // console.log(cf)
+
+        company.cashflow.push(cf);
+
+        console.log(company)
+        var promise = company.save();
+
+        promise.then((doc) => {
+            console.log("saved doc", doc);
+        }, (err) => {
+            if (err.code != 11000) {
+                console.log("ERROR on save()", err.code, err.message);
+                return;
+            }
+
+            // duplicate key error
+            // company already existed, insert cashflow into it
+            //  if (err.code === 11000) {
+            console.log("company already existed, insert cashflow into it");
+            console.log("going to find comapny:", company.cashflow[0].year);
+
+            // find existing company in db
+            Company.findOne({
+                name: data.name
+            }).then((doc) => {
+
+                // check whether the year is already inserted
+                filtered = doc.cashflow.filter((item) => {
+                    // console.log(item.year, company.cashflow[0].year);
+                    return item.year === company.cashflow[0].year;
+                })
+
+                // console.log('Filtered', filtered);
+                if (filtered && filtered.length > 0) {
+                    console.log(`Cashflow in ${company.cashflow[0].year} already exist.`)
+                    return;
+                }
+
+                doc.cashflow.push(cf);
+                doc.save().then((doc) => {
+                    console.log("after push", doc);
+                }, (err) => {
+                    console.log(err);
+                })
+
+            });
+        });
+
+        // Company.find({}, function (err, data) {
+        //     if (err) {
+        //         return console.log(err);
+        //     };
+        //     console.log("find() callback", data);
+        // })
     })
 
-    $('th').each(function (i, elem) {
 
-        key = $(this).text().trim();
-        value = $(this).next().text().trim();
-
-        i + 1 == 1 ? console.log(key, value) : void(0);
-        i + 1 == 12 ? console.log(key, value) : void(0);
-        i + 1 == 25 ? console.log(key, value) : void(0);
-        i + 1 == 35 ? console.log(key, value) : void(0);
-    });
 }
 
 var getCompanyName = (html) => {
@@ -127,7 +186,7 @@ var getPage = function (url, callback) {
 
 
 module.exports = {
-    getPage,
+    // getPage,
     getCompanyName,
     processAssetStatement,
     processIncomeStatement,
