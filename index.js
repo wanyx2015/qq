@@ -11,37 +11,56 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/StockApp'
     useMongoClient: true
 });
 
+var symbols = ['600410', '000977', '002520', '300216', '002410', '600478', '000895', '002271', '002081', '603000', '002367']
+symbols = ['600410', '000977', '002520', '300216', '002410', '600478', '000895', '002271', '002081', '603000', '002367']
+symbols = ['600410', '000977'];
+symbols = ['002410'];
+
+var years = [2016, 2015, 2014, 2013, 2012, 2011, 2010];
+years = [2016, 2015, 2014, 2013, 2012, 2011, 2010]
+// years = [2016, 2015, 2014, 2013]
+// years = [2016, 2015]
+//years = [2016]
+
+var jobList = [];
+var job;
+
+//    PREPARING THE JOB LIST
+for (i in symbols) {
+    for (j in years) {
+        if (symbols[i].length > 0) {
+            jobList.push({
+                symbol: symbols[i].trim(),
+                year: years[j]
+            })
+        }
+    }
+}
+
+console.log("Num of symbols: " + symbols.length);
+console.log("Num of jobs: " + jobList.length);
+console.log(jobList);
+
+while (jobList.length > 0) {
+    // setTimeout(processSymbols(), 3000);
+    processSymbols();
+}
+
+function processSymbols() {
+    job = jobList.shift();
+    var symbol = job.symbol;
+    var year = job.year;
+
+    var url_balance = `http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=${job.symbol}&type=${job.year}`;
+    var url_income = `http://stock.finance.qq.com/corp1/inst.php?zqdm=${job.symbol}&type=${job.year}`;
+    var url_cashflow = `http://stock.finance.qq.com/corp1/cfst.php?zqdm=${job.symbol}&type=${job.year}`;
 
 
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=002271&type=2013');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=002271&type=2014');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=002271&type=2015');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=002271&type=2016');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=600010&type=2016');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=600030&type=2016');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=600030&type=2015');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=600031&type=2015');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=600032&type=2015');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=600033&type=2015');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=002271&type=2015');
-// page.processCashFlow('http://stock.finance.qq.com/corp1/cfst.php?zqdm=600035&type=2015');
+    console.log(url_balance);
+    console.log(url_income);
+    console.log(url_cashflow);
 
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2012');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2013');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2014');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2015');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=600010&type=2012');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=600010&type=2013');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=600010&type=2014');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=600010&type=2015');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=600010&type=2016');
-
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2012');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2013');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2014');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2015');
-// page.processAssetStatement('http://stock.finance.qq.com/corp1/cbsheet.php?zqdm=002271&type=2016');
-
-page.processIncomeStatement('http://stock.finance.qq.com/corp1/inst.php?zqdm=002271&type=2014');
-
-
+    page.processIncomeStatement(url_income);
+    page.processAssetStatement(url_balance);
+    page.processCashFlow(url_cashflow);
+}
