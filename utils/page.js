@@ -21,7 +21,7 @@ var processIncomeStatement = (url) => {
             income: []
         });
 
-        var bl = {};
+        var incomeObj = {};
 
         $('th').each(function (i, elem) {
 
@@ -31,51 +31,51 @@ var processIncomeStatement = (url) => {
 
             // year
             if (i + 1 == 1) {
-                bl.year = value;
+                incomeObj.year = value;
             }
             // Total operating income
             if (i + 1 == 2) {
-                bl.totaloperatingincome = value;
+                incomeObj.totaloperatingincome = value;
             }
             // Total operating cost
             if (i + 1 == 3) {
-                bl.totaloperatingcost = value;
+                incomeObj.totaloperatingcost = value;
             }
             // Sales taxes and surcharges
             if (i + 1 == 4) {
-                bl.salestaxes = value;
+                incomeObj.salestaxes = value;
             }
             // Sales expenses
             if (i + 1 == 5) {
-                bl.salesexpenses = value;
+                incomeObj.salesexpenses = value;
             }
             // GA expenses
             if (i + 1 == 6) {
-                bl.gaexpenses = value;
+                incomeObj.gaexpenses = value;
             }
             // Financial expenses
             if (i + 1 == 7) {
-                bl.financialexpenses = value;
+                incomeObj.financialexpenses = value;
             }
             // Impairment losses, Asset devaluation
             if (i + 1 == 8) {
-                bl.assetdevaluation = value;
+                incomeObj.assetdevaluation = value;
             }
             // Operating profit
             if (i + 1 == 12) {
-                bl.operatingprofit = value;
+                incomeObj.operatingprofit = value;
             }
             // Non-operating income
             if (i + 1 == 13) {
-                bl.nonoperatingincome = value;
+                incomeObj.nonoperatingincome = value;
             }
             // Operating expenses
             if (i + 1 == 14) {
-                bl.operatingexpenses = value;
+                incomeObj.operatingexpenses = value;
             }
             // Net Income Attributable to Shareholders
             if (i + 1 == 19) {
-                bl.netincome = value;
+                incomeObj.netincome = value;
             }
 
             i + 1 == 1 ? console.log(key, value) : void(0); // Year
@@ -92,11 +92,12 @@ var processIncomeStatement = (url) => {
             i + 1 == 19 ? console.log(key, value) : void(0); // Net Income Attributable to Shareholders
         });
 
-        company.income.push(bl);
+        company.income.push(incomeObj);
+        company.updatedAt = new Date().getTime();
         var promise = company.save();
 
         promise.then((doc) => {
-            console.log("saved doc", doc);
+            console.log("saved doc", doc.name, doc.income.length);
         }, (err) => {
             if (err.code != 11000) {
                 console.log("ERROR on save()", err);
@@ -124,9 +125,10 @@ var processIncomeStatement = (url) => {
                     return;
                 }
 
-                doc.income.push(bl);
+                doc.income.push(incomeObj);
+                doc.updatedAt = new Date().getTime();
                 doc.save().then((doc) => {
-                    console.log("after push", doc);
+                    console.log("after push", doc.income.length);
                 }, (err) => {
                     console.log(err);
                 })
@@ -153,7 +155,7 @@ var processAssetStatement = (url) => {
             balance: []
         });
 
-        var bl = {};
+        var balanceObj = {};
 
         $('th').each(function (i, elem) {
 
@@ -163,27 +165,27 @@ var processAssetStatement = (url) => {
             value = value.replace("万元", "");
             // year
             if (i + 1 == 1) {
-                bl.year = value;
+                balanceObj.year = value;
             }
             // account receivable
             if (i + 1 == 6) {
-                bl.ar = value;
+                balanceObj.ar = value;
             }
             // fixed asset
             if (i + 1 == 21) {
-                bl.fixedasset = value;
+                balanceObj.fixedasset = value;
             }
             // total asset
             if (i + 1 == 34) {
-                bl.totalasset = value;
+                balanceObj.totalasset = value;
             }
             // total liability
             if (i + 1 == 57) {
-                bl.totalliability = value;
+                balanceObj.totalliability = value;
             }
             // shareholder value
             if (i + 1 == 66) {
-                bl.totalownerequity = value;
+                balanceObj.totalownerequity = value;
             }
 
             i + 1 == 1 ? console.log(key, value) : void(0); // year
@@ -194,11 +196,12 @@ var processAssetStatement = (url) => {
             i + 1 == 66 ? console.log(key, value) : void(0); // shareholder value
         });
 
-        company.balance.push(bl);
+        company.balance.push(balanceObj);
+        company.updatedAt = new Date().getTime();
         var promise = company.save();
 
         promise.then((doc) => {
-            console.log("saved doc", doc);
+            console.log("saved doc", doc.name, doc.balance.length);
         }, (err) => {
             if (err.code != 11000) {
                 console.log("ERROR on save()", err);
@@ -226,9 +229,10 @@ var processAssetStatement = (url) => {
                     return;
                 }
 
-                doc.balance.push(bl);
+                doc.balance.push(balanceObj);
+                doc.updatedAt = new Date().getTime();
                 doc.save().then((doc) => {
-                    console.log("after push", doc);
+                    console.log("after push", doc.balance.length);
                 }, (err) => {
                     console.log(err);
                 })
@@ -253,7 +257,7 @@ var processCashFlow = (url) => {
             cashflow: []
         });
 
-        var cf = {};
+        var cashflowObj = {};
         $('th').each(function (i, elem) {
 
             key = $(this).text().trim();
@@ -261,19 +265,19 @@ var processCashFlow = (url) => {
             value = value.replace("万元", "");
 
             if (i + 1 == 1) {
-                cf.year = value;
+                cashflowObj.year = value;
                 // console.log(cf);
             }
             if (i + 1 == 12) {
-                cf.operating = value;
+                cashflowObj.operating = value;
                 // console.log(cf);
             }
             if (i + 1 == 25) {
-                cf.investment = value;
+                cashflowObj.investment = value;
                 // console.log(cf);
             }
             if (i + 1 == 35) {
-                cf.fundrasing = value;
+                cashflowObj.fundrasing = value;
                 // console.log(cf);
             }
             i + 1 == 1 ? console.log(key, value) : void(0); //year
@@ -282,13 +286,12 @@ var processCashFlow = (url) => {
             i + 1 == 35 ? console.log(key, value) : void(0); // fundrasing
         });
 
-        company.cashflow.push(cf);
-
-        console.log(company)
+        company.cashflow.push(cashflowObj);
+        company.updatedAt = new Date().getTime();
         var promise = company.save();
 
         promise.then((doc) => {
-            console.log("saved doc", doc);
+            console.log("saved doc", doc.name, doc.cashflow.length);
         }, (err) => {
             if (err.code != 11000) {
                 console.log("ERROR on save()", err);
@@ -311,7 +314,7 @@ var processCashFlow = (url) => {
                 if (!doc) {
                     // this code wont execute
                     company.save().then((doc) => {
-                        console.log("after creation", doc);
+                        // console.log("after creation", doc);
                         return;
                     }, (err) => {
                         console.log(err);
@@ -330,9 +333,11 @@ var processCashFlow = (url) => {
                     return;
                 }
 
-                doc.cashflow.push(cf);
+                doc.cashflow.push(cashflowObj);
+                doc.updatedAt = new Date().getTime();
+
                 doc.save().then((doc) => {
-                    console.log("after push", doc);
+                    console.log("after push", doc.cashflow.length);
                 }, (err) => {
                     console.log(err);
                 })
@@ -381,7 +386,6 @@ var getPage = function (url, callback) {
 
 
 module.exports = {
-    getCompanyName,
     processAssetStatement,
     processIncomeStatement,
     processCashFlow
