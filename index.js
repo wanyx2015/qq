@@ -51,6 +51,7 @@ fs.readFile('./all_symbols_qq.txt', function (err, data) {
     console.log(jobList);
 
     function processSymbols() {
+        console.log();
         job = jobList.shift();
         var symbol = job.symbol;
         var year = job.year;
@@ -59,30 +60,51 @@ fs.readFile('./all_symbols_qq.txt', function (err, data) {
         var url_income = `http://stock.finance.qq.com/corp1/inst.php?zqdm=${job.symbol}&type=${job.year}`;
         var url_cashflow = `http://stock.finance.qq.com/corp1/cfst.php?zqdm=${job.symbol}&type=${job.year}`;
 
-
-        console.log(url_balance);
-        console.log(url_income);
-        console.log(url_cashflow);
-
         Company.findOne({
             symbol: job.symbol
         }).then((doc) => {
             if (doc) {
-
+                console.log(`${job.symbol} ${doc.name} exists, checking ${job.year} data......`);
+                
                 // check whether symbol year data exist
                 var balanceYear = doc.balance.filter((item) => {
                     return item.year.indexOf(job.year) != -1;
                 })
                 // exist, skip
                 if (balanceYear.length > 0) {
-                    console.log(`${job.symbol} ${doc.name} ${job.year} exists, skipping......`);
+                    console.log(`${job.symbol} ${doc.name} exists, checking ${job.year} data done......exists...`);
+                    if (jobList.length > 0) {
+                        setTimeout(processSymbols, 1000);
+                        console.log("Job remaining:", jobList.length)
+                    }
+                    return;
                 }
+
+                console.log(`${job.symbol} ${doc.name} exists, checking ${job.year} data done......not exists...`);
+                
+                console.log(url_balance);
+                console.log(url_income);
+                console.log(url_cashflow);
+    
+                page.processIncomeStatement(url_income);
+                page.processAssetStatement(url_balance);
+                page.processCashFlow(url_cashflow);
+    
                 if (jobList.length > 0) {
-                    setTimeout(processSymbols, 1000);
+                    setTimeout(processSymbols, 20000);
                     console.log("Job remaining:", jobList.length)
                 }
+
                 return;
+                
             }
+
+            console.log(`${job.symbol} ${doc.name} exists, checking ${job.year} data done......not exists...`);
+            
+            console.log(url_balance);
+            console.log(url_income);
+            console.log(url_cashflow);
+
             page.processIncomeStatement(url_income);
             page.processAssetStatement(url_balance);
             page.processCashFlow(url_cashflow);
