@@ -34,7 +34,7 @@ fs.readFile('./all_symbols_qq.txt', function (err, data) {
 
     symbols = data.toString().split('\n');
 
-    // symbols = ['600519'];
+    // symbols = ['601988'];
     for (i in symbols) {
         for (j in years) {
             if (symbols[i].length > 0) {
@@ -99,7 +99,7 @@ fs.readFile('./all_symbols_qq.txt', function (err, data) {
                 
             }
 
-            console.log(`${job.symbol} ${doc.name} exists, checking ${job.year} data done......not exists...`);
+            console.log(`${job.symbol} not exists...`);
             
             console.log(url_balance);
             console.log(url_income);
