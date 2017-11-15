@@ -92,6 +92,11 @@ var processIncomeStatement = (url) => {
             i + 1 == 19 ? console.log(key, value) : void(0); // Net Income Attributable to Shareholders
         });
 
+        if (!incomeObj.year) {
+            console.log("ERROR: data not found", url)
+            return;
+        }
+
         company.income.push(incomeObj);
         company.updatedAt = new Date().getTime();
         var promise = company.save();
@@ -196,6 +201,11 @@ var processAssetStatement = (url) => {
             i + 1 == 66 ? console.log(key, value) : void(0); // shareholder value
         });
 
+        if (!balanceObj.year) {
+            console.log("ERROR: data not found", url)
+            return;
+        }
+
         company.balance.push(balanceObj);
         company.updatedAt = new Date().getTime();
         var promise = company.save();
@@ -285,6 +295,11 @@ var processCashFlow = (url) => {
             i + 1 == 25 ? console.log(key, value) : void(0); // investment
             i + 1 == 35 ? console.log(key, value) : void(0); // fundrasing
         });
+
+        if (!cashflowObj.year) {
+            console.log("ERROR: data not found", url)
+            return;
+        }
 
         company.cashflow.push(cashflowObj);
         company.updatedAt = new Date().getTime();
